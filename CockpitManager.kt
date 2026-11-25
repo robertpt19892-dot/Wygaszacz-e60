@@ -287,7 +287,8 @@ class CockpitManager(
             })
         })
 
-        scroll.addView(box)
+                val scroll = ScrollView(ctx).apply { addView(box) }
         android.app.AlertDialog.Builder(ctx).setTitle("Ustawienia Kokpitu E60").setView(scroll).setPositiveButton("GOTOWE", null).show()
-    }
+
+            }
 }
