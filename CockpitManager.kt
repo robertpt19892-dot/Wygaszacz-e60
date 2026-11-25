@@ -243,3 +243,51 @@ class CockpitManager(
 
         listOf(gEct to "show_ect", gEot to "show_eot", gVolt to "show_volt").forEach { (g, k) ->
             g.visibility = if (prefs.getBoolean(k, true)) View.VISIBLE else View.GONE
+        val lStyleRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        listOf("Ramka 3D", "Zwykła", "Brak ramki").forEachIndexed { idx, txt ->
+            lStyleRow.addView(Button(ctx).apply { text = txt; textSize = 11f; setOnClickListener { prefs.edit().putInt("left_style", idx + 1).apply(); applySettings() } })
+        }
+        box.addView(lStyleRow)
+
+        box.addView(TextView(ctx).apply { text = "\nPRAWE ZEGARY (Nm / KM) I SKALA (12:00 = POŁOWA)"; typeface = Typeface.DEFAULT_BOLD })
+        addSwitch("Zegar: Niutonometry (Nm)", "show_nm", true)
+        addSwitch("Zegar: Konie mechaniczne (KM)", "show_km", true)
+
+        val scaleRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val etMaxNm = EditText(ctx).apply { hint = "Max Nm"; inputType = InputType.TYPE_CLASS_NUMBER; setText(prefs.getInt("max_nm", 400).toString()); layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
+        val etMaxKm = EditText(ctx).apply { hint = "Max KM"; inputType = InputType.TYPE_CLASS_NUMBER; setText(prefs.getInt("max_km", 200).toString()); layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
+        val btnSaveScale = Button(ctx).apply {
+            text = "USTAW"
+            setOnClickListener {
+                val n = etMaxNm.text.toString().toIntOrNull()?.coerceIn(100, 1500) ?: 400
+                val k = etMaxKm.text.toString().toIntOrNull()?.coerceIn(50, 1000) ?: 200
+                prefs.edit().putInt("max_nm", n).putInt("max_km", k).apply()
+                applySettings()
+                Toast.makeText(ctx, "Max: " + n + " Nm / " + k + " KM", Toast.LENGTH_SHORT).show()
+            }
+        }
+        scaleRow.addView(etMaxNm); scaleRow.addView(etMaxKm); scaleRow.addView(btnSaveScale)
+        box.addView(scaleRow)
+
+        addSwitch("Umieść Nm i KM w prawej ramce (zamiast swobodnie)", "right_frame_mode", false)
+
+        val rStyleRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        listOf("Prawa: 3D", "Prawa: Zwykła", "Prawa: Brak").forEachIndexed { idx, txt ->
+            rStyleRow.addView(Button(ctx).apply { text = txt; textSize = 11f; setOnClickListener { prefs.edit().putInt("right_style", idx + 1).apply(); applySettings() } })
+        }
+        box.addView(rStyleRow)
+
+        box.addView(TextView(ctx).apply { text = "Wielkość zegarów Nm/KM (tryb swobodny):" })
+        box.addView(SeekBar(ctx).apply {
+            max = 350; progress = prefs.getInt("free_size", 230)
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(s: SeekBar?, p: Int, f: Boolean) { prefs.edit().putInt("free_size", p.coerceAtLeast(110)).apply(); applySettings() }
+                override fun onStartTrackingTouch(s: SeekBar?) {}
+                override fun onStopTrackingTouch(s: SeekBar?) {}
+            })
+        })
+
+        scroll.addView(box)
+        android.app.AlertDialog.Builder(ctx).setTitle("Ustawienia Kokpitu E60").setView(scroll).setPositiveButton("GOTOWE", null).show()
+    }
+}
