@@ -192,7 +192,7 @@ jobs:
                   if (!isScreensaver) {
                       val topBtns = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; elevation = 40f }
                       val btnHome = Button(ctx).apply { text = "MENU"; textSize = 11f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); setPadding(0, 0, 0, 0); background = GradientDrawable().apply { setColor(Color.parseColor("#E60F172A")); setStroke(3, Color.parseColor("#E21B22")); cornerRadius = 45f }; layoutParams = LinearLayout.LayoutParams(110, 74).apply { rightMargin = 14 }; setOnClickListener { openStockDisplayMenu(ctx) } }
-                      val btnGear = Button(ctx).apply { text = "⚙"; textSize = 22f; setTextColor(Color.WHITE); setPadding(0, 0, 0, 0); background = GradientDrawable().apply { setColor(Color.parseColor("#E60F172A")); setStroke(3, Color.parseColor("#38BDF8")); cornerRadius = 45f }; layoutParams = LinearLayout.LayoutParams(80, 74); setOnClickListener { showCockpitSettingsDialog(ctx, prefs, editMode, demoMode, { editMode = it; applySettings() }, { demoMode = it; if (demoMode) handler.post(demoRunnable) }, onPickPhoto, { lightState = it; updateBackgroundPhoto() }, { applySettings() }) } }
+                      val btnGear = 
                       topBtns.addView(btnHome); topBtns.addView(btnGear)
                       rootLayout.addView(topBtns, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.END).apply { topMargin = 20; rightMargin = 24 })
                   }
