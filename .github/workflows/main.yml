@@ -219,4 +219,100 @@ jobs:
                   }
               }
 
-              fun applySettings() {
+                            fun applySettings() {
+                  updateBackgroundPhoto(); gNm.setMaxValue(prefs.getInt("max_nm", 400).toFloat()); gKm.setMaxValue(prefs.getInt("max_km", 200).toFloat())
+                  val leftW = prefs.getInt("left_w", 240); leftPanel.layoutParams = (leftPanel.layoutParams as FrameLayout.LayoutParams).apply { width = leftW }; leftPanel.background = buildFrameDrawable(prefs.getInt("left_style", 1))
+                  val lSize = (leftW - 32).coerceIn(90, 230); logoView.visibility = if (prefs.getBoolean("show_logo", true)) View.VISIBLE else View.GONE
+                  logoView.layoutParams = LinearLayout.LayoutParams((lSize * 0.72f).toInt(), (lSize * 0.72f).toInt()).apply { bottomMargin = 10 }
+                  listOf(gEct to "show_ect", gEot to "show_eot", gVolt to "show_volt").forEach { (g, k) -> g.visibility = if (prefs.getBoolean(k, true)) View.VISIBLE else View.GONE; g.layoutParams = LinearLayout.LayoutParams(lSize, lSize).apply { topMargin = 6; bottomMargin = 6 } }
+                  val rightFrameMode = prefs.getBoolean("right_frame_mode", false); val rightW = prefs.getInt("right_w", 260)
+                  (gNm.parent as? ViewGroup)?.removeView(gNm); (gKm.parent as? ViewGroup)?.removeView(gKm)
+                  gNm.visibility = if (prefs.getBoolean("show_nm", true)) View.VISIBLE else View.GONE; gKm.visibility = if (prefs.getBoolean("show_km", true)) View.VISIBLE else View.GONE
+                  if (rightFrameMode) {
+                      rightPanel.visibility = View.VISIBLE; freeRightLayer.visibility = View.GONE; rightPanel.layoutParams = (rightPanel.layoutParams as FrameLayout.LayoutParams).apply { width = rightW }; rightPanel.background = buildFrameDrawable(prefs.getInt("right_style", 1))
+                      val rSize = (rightW - 32).coerceIn(100, 300); gNm.layoutParams = LinearLayout.LayoutParams(rSize, rSize).apply { bottomMargin = 14 }; gKm.layoutParams = LinearLayout.LayoutParams(rSize, rSize).apply { topMargin = 14 }
+                      rightPanel.addView(gNm); rightPanel.addView(gKm)
+                  } else {
+                      rightPanel.visibility = View.GONE; freeRightLayer.visibility = View.VISIBLE; val freeSize = prefs.getInt("free_size", 230)
+                      freeRightLayer.addView(gNm, FrameLayout.LayoutParams(freeSize, freeSize)); freeRightLayer.addView(gKm, FrameLayout.LayoutParams(freeSize, freeSize))
+                      gNm.x = prefs.getFloat("nm_x", (leftW + 760).toFloat()); gNm.y = prefs.getFloat("nm_y", 90f); gKm.x = prefs.getFloat("km_x", (leftW + 760).toFloat()); gKm.y = prefs.getFloat("km_y", 360f)
+                  }
+                  leftResizeHandle.visibility = if (editMode) View.VISIBLE else View.GONE; leftResizeHandle.layoutParams = FrameLayout.LayoutParams(16, -1, Gravity.START).apply { leftMargin = leftW - 8 }
+                  rightResizeHandle.visibility = if (editMode && rightFrameMode) View.VISIBLE else View.GONE; rightResizeHandle.layoutParams = FrameLayout.LayoutParams(16, -1, Gravity.END).apply { rightMargin = rightW - 8 }
+              }
+
+              private fun buildFrameDrawable(style: Int): GradientDrawable? = when (style) {
+                  1 -> GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.parseColor("#CC162033"), Color.parseColor("#D9090D16"))).apply { setStroke(3, Color.parseColor("#5538BDF8")); cornerRadius = 24f }
+                  2 -> GradientDrawable().apply { setColor(Color.parseColor("#B30B0F19")); setStroke(2, Color.parseColor("#475569")); cornerRadius = 16f }
+                  else -> null
+              }
+          }
+          EOF
+      - name: Step 5 MainActivity
+        run: |
+          cat << 'EOF' > app/src/main/java/com/example/bmwe60cockpit/MainActivity.kt
+          package com.example.bmwe60cockpit
+          import android.app.Activity
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          import android.content.pm.ActivityInfo
+          import android.os.Bundle
+          import android.service.dreams.DreamService
+          import android.view.View
+          import android.view.WindowManager
+          import androidx.appcompat.app.AppCompatActivity
+
+          class MainActivity : AppCompatActivity() {
+              private var manager: CockpitManager? = null; private var pendingSlot = 0
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                  window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                  @Suppress("DEPRECATION")
+                  window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                  manager = CockpitManager(this, isScreensaver = false) { slot ->
+                      pendingSlot = slot; startActivityForResult(Intent.createChooser(Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }, "Wybierz zdjęcie tła"), 2001)
+                  }
+                  setContentView(manager!!.rootLayout)
+              }
+              @Deprecated("Deprecated in Java")
+              override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+                  super.onActivityResult(requestCode, resultCode, data)
+                  if (requestCode == 2001 && resultCode == Activity.RESULT_OK) data?.data?.let { manager?.savePhoto(pendingSlot, it) }
+              }
+              @Deprecated("Deprecated in Java")
+              override fun onBackPressed() {}
+              override fun onDestroy() { manager?.destroy(); super.onDestroy() }
+          }
+
+          class E60DreamService : DreamService() {
+              private var manager: CockpitManager? = null
+              override fun onAttachedToWindow() { super.onAttachedToWindow(); isInteractive = true; isFullscreen = true; manager = CockpitManager(this, isScreensaver = true); setContentView(manager!!.rootLayout) }
+              override fun onDetachedFromWindow() { manager?.destroy(); super.onDetachedFromWindow() }
+          }
+
+          class BootReceiver : BroadcastReceiver() {
+              override fun onReceive(context: Context, intent: Intent) {
+                  val prefs = context.getSharedPreferences("e60_cockpit_cfg", Context.MODE_PRIVATE)
+                  if (!prefs.getBoolean("auto_boot", true)) return
+                  if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == "android.intent.action.QUICKBOOT_POWERON") {
+                      context.startActivity(Intent(context, MainActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) })
+                  }
+              }
+          }
+          EOF
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.4'
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk E60-Cockpit-v1.${{ github.run_number }}.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: E60-Cockpit-v1.${{ github.run_number }}
+          path: E60-Cockpit-v1.${{ github.run_number }}.apk
+
