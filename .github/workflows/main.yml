@@ -416,10 +416,3 @@ jobs:
         with:
           name: E60-Cockpit-v1.${{ github.run_number }}
           path: E60-Cockpit-v1.${{ github.run_number }}.apk
-
-
-
-              }
-          }
-          EOF
-          
