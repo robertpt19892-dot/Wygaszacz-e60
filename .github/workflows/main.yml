@@ -96,7 +96,7 @@ jobs:
           }
           EOF
                 - name: Step 4 Manager
-        run: |
+          run: |
           cat << 'EOF' > app/src/main/java/com/example/bmwe60cockpit/CockpitManager.kt
           package com.example.bmwe60cockpit
           import android.annotation.SuppressLint
