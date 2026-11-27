@@ -117,7 +117,8 @@ jobs:
               box.addView(Button(ctx).apply { text = "USTAW JAKO DOMYŚLNY PULPIT (LAUNCHER)"; setTextColor(Color.WHITE); typeface = Typeface.DEFAULT_BOLD; setBackgroundColor(Color.parseColor("#1E50A2")); setPadding(20, 20, 20, 20); layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = 10 }; setOnClickListener { try { ctx.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) { ctx.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } } })
               box.addView(Button(ctx).apply { text = "AKTYWUJ / USTAW WYGASZACZ EKRANU"; setTextColor(Color.WHITE); typeface = Typeface.DEFAULT_BOLD; setBackgroundColor(Color.parseColor("#0284C7")); setPadding(20, 20, 20, 20); setOnClickListener { try { ctx.startActivity(Intent(Settings.ACTION_DREAM_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) { ctx.startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } } })
               box.addView(Switch(ctx).apply { text = "Autostart po włączeniu radia / zapłonu"; isChecked = prefs.getBoolean("auto_boot", true); textSize = 15f; setPadding(0, 14, 0, 8); setOnCheckedChangeListener { _, chk -> prefs.edit().putBoolean("auto_boot", chk).apply(); if (chk && Build.VERSION.SDK_INT >= 23 && !Settings.canDrawOverlays(ctx)) { try { ctx.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {} } } })
-
+          }
+          EOF
       - name: Step 4 Manager
         run: |
           cat << 'EOF' > app/src/main/java/com/example/bmwe60cockpit/CockpitManager.kt
