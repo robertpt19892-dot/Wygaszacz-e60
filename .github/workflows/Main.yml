@@ -156,7 +156,7 @@ jobs:
               box.addView(rStyleRow)
               box.addView(TextView(ctx).apply { text = "Wielkość zegarów Nm/KM (tryb swobodny):"; setTextColor(Color.WHITE) })
           EOF
-          - name: Step 4 Manager
+      - name: Step 4 Manager
         run: |
           cat << 'EOF' > app/src/main/java/com/example/bmwe60cockpit/CockpitManager.kt
           package com.example.bmwe60cockpit
