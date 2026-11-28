@@ -154,8 +154,9 @@ jobs:
               val rStyleRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
               listOf("Prawa: 3D", "Prawa: Zwykła", "Prawa: Brak").forEachIndexed { idx, txt -> rStyleRow.addView(Button(ctx).apply { text = txt; textSize = 11f; setOnClickListener { prefs.edit().putInt("right_style", idx + 1).apply(); onRefresh() } }) }
               box.addView(rStyleRow)
-              box.addView(TextView(ctx).apply { text = "Wielkość zegarów Nm/KM (tryb swobodny):"; setTextColor(Color.WHITE) })
+              box.addView(SeekBar(ctx).apply { max = 350; progress = prefs.getInt("free_size", 230); setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener { override fun onProgressChanged(s: SeekBar?, p: Int, f: Boolean) { prefs.edit().putInt("free_size", p.coerceAtLeast(110)).apply(); onRefresh() }; override fun onStartTrackingTouch(s: SeekBar?) {}; override fun onStopTrackingTouch(s: SeekBar?) {} }) })
           EOF
+          
       - name: Step 4 Manager
         run: |
           cat << 'EOF' > app/src/main/java/com/example/bmwe60cockpit/CockpitManager.kt
